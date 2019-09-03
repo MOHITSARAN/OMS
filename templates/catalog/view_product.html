@@ -1,0 +1,487 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block title %}
+{{ ' myCart' }}
+{% endblock title %}
+
+{% block body_content %}
+
+<div id="wrapper">
+	<!-- MAIN -->
+	<div class="main">
+		<div class="col-lg-12">
+			<div class="card">
+				<div class="card-body">
+					<div class="table-responsive">
+						<table id="productsTable" class="table table-striped table-bordered">
+							<thead style="background-color: #004990;color: white;">
+								<tr>
+									<th width="7%">Enabled</th>
+									<th width="10%">Product ID</th>
+									<th width="40%">Product Name</th>
+									<th width="15%">Price</th>
+									<th width="10%">Currency</th>
+									<th width="10%">Quantity</th>
+									<th width="8%">Actions</th>
+								</tr>
+							</thead>
+							<tbody>
+							</tbody>
+						</table>
+					</div>
+					<!--end .table-responsive -->
+				</div>
+			</div>
+
+
+			<!-- Delete Modal HTML -->
+			<div id="deleteProductModal" class="modal fade">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<form>
+							<div class="modal-header">
+								<h4 class="modal-title">Delete Product</h4>
+								<button type="button" class="close" data-dismiss="modal"
+									aria-hidden="true">&times;</button>
+							</div> <!-- end of modal-body  -->
+
+							<div class="modal-body">
+								<p id='deleteModalMessage'></p>
+								<p class="text-warning"><small>This action cannot be undone.</small></p>
+							</div> <!-- end of modal-body  -->
+
+							<div class="modal-footer">
+								<input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
+								<input type="submit" class="deleteModalSubmitBtn btn btn-danger" value="Delete">
+							</div> <!-- end of modal-footer  -->
+
+						</form> <!-- end of form  -->
+					</div> <!-- end of modal-content  -->
+				</div> <!-- end of modal-dialog  -->
+			</div> <!-- end of modal (delete) -->
+
+			<!-- Edit Modal HTML -->
+			<div id="editProductModal" class="modal fade bd-example-modal-xl">
+				<div class="modal-dialog modal-xl" style="min-width: 80%">
+					<div class="modal-content">
+						<form>
+							<div class="col-lg-12" style="margin-top: 1%">
+								<div class="alert alert-info" style="margin-top: 1%">
+									<label style="font-weight: bold;">Info!</label>
+									Please change the values that needs changing, keep the other fields blank
+								</div>
+								<div class="card">
+									<div class="card-body">
+
+										<div class="row">
+
+											<!-- First Column -->
+											<div class="col-sm-6">
+												<header>Edit Product :</header>
+												</br>
+												<div class="form-group floating-label">
+													<label for="regular2">Product Name</label>
+													<input type="text" class="form-control" id="productNameField">
+												</div>
+												<div class="form-group floating-label">
+													<label for="regular2">Description</label>
+													<input type="text" class="form-control" id="descriptionField">
+												</div>
+												<div class="form-group floating-label">
+													<label for="textarea2">Product Details</label>
+													<input type="text" class="form-control" id="detailsField">
+												</div>
+											</div>
+
+											<!-- Second Column -->
+											<div class="col-sm-6">
+												<header><br><br></header>
+												<div class="form-group">
+													<label for="regular2">Barcode</label>
+													<input type="text" class="form-control" id="barcodeField">
+												</div>
+												<div class="form-group floating-label">
+													<label for="textarea2">Quantity</label>
+													<input type="text" class="form-control" id="quantityField">
+												</div>
+												<div class="row">
+													<div class="col-sm-12">
+														<div class="form-group floating-label">
+															<label for="textarea2">Price</label>
+															<div class="row">
+																<div class="col-sm-9">
+																	<input type="text" class="form-control"
+																		id="priceField">
+																</div>
+																<div class="dropdown col-sm-3">
+																	<select name="SelectedProject" id="currencyField"
+																		class="form-control">
+																		<option value="None" selected> Not Selected
+																		</option>
+
+																		<option value="INR">INR</option>
+																		<option value="USD">USD</option>
+																		<option value="CAD">CAD</option>
+
+																	</select>
+																</div>
+															</div>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+									<!--end .card-body -->
+								</div>
+								<!-- </div> -->
+							</div>
+							<div class="modal-footer">
+								<input type="submit" class="btn btn-primary ink-reaction" id="editProductSubmitButton"
+									value="SUBMIT">
+								<input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+
+		</div>
+		<!--end .col -->
+	</div>
+	<!--end .row -->
+</div>
+<!--end .section-body -->
+</div>
+<!--end .section-body -->
+
+{% endblock body_content %}
+
+{% block javascript %}
+
+<script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/alertify.js/0.5.0/alertify.min.js"></script>
+
+<!-- FireBase  -->
+<script src="https://www.gstatic.com/firebasejs/6.4.0/firebase.js"></script>
+<script src="{% static 'js/FirebaseINIT.js' %}"></script>
+
+<!-- Data Table JS  -->
+<script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+
+<!-- Alertify JavaScript -->
+
+<script>
+	$(function () {
+		alertify.alert('Alert Title', 'Alert Message!', function () { alertify.success('Ok'); });
+	});
+
+	get_product_list();
+
+	function get_product_list() {
+
+		var database = firebase.database();
+		database.ref('ItemInventory/').once('value', function (snapshot) {
+			if (snapshot.exists()) {
+				var content = '';
+				snapshot.forEach(function (data) {
+					var val = data.val();
+
+					content += '<tr>';
+					if (val.enabled == "YES") {
+						content += '<td width="7%"><label class="switch"><input type="checkbox" checked onclick="productEnableOrDisable(\'' + val.item_id + '\', this)" ><span class="slider round"></span></label></td>';
+					}
+					else {
+						content += '<td width="7%"><label class="switch"><input type="checkbox" onclick="productEnableOrDisable(\'' + val.item_id + '\', this)" ><span class="slider round"></span></label></td>';
+					}
+					content += '<td width="10%">' + val.item_id + '</td>';
+					content += '<td width="40%">' + val.item_name + '</td>';
+					content += '<td width="15%">' + val.item_price + '</td>';
+					content += '<td width="10%">' + val.item_currency + '</td>';
+					content += '<td width="10%">' + val.item_quantity + '</td>';
+					content += '<td width="8%"><a href="#deleteProductModal" class="delete" data-toggle="modal" data-itemid=\'' + val.item_id + '\'><i class="material-icons" data-toggle="tooltip" style="color:red;" title="Delete">&#xE872;</i></a>&emsp;<a href="#editProductModal" class="edit" data-toggle="modal"  data-itemid=\'' + val.item_id + '\' data-target=".bd-example-modal-xl"><i class="material-icons" data-toggle="tooltip" style="color:#004990;" title="Edit">&#xE254;</i></a></td>';
+					content += '</tr>';
+				});
+				$('#productsTable').append(content);
+				$('#productsTable').DataTable();
+			}
+		});
+	}
+
+	//  Code to delete item from firebase also deletes the item image in firebase storage
+	function deleteItem(itemID) {
+
+		alert(itemID)
+
+		//Firebase Store Delete Image 
+		// Create a reference to the file to delete
+		var delStoreRef = defaultStorage.ref().child('ProductImages/' + itemID);
+
+		// Delete the file
+		delStoreRef.delete().then(function () {
+			// Image is deleted successfully now the data needs to be deleted
+			console.log("Image of Item ID = " + itemID + " is Deleted");
+
+			//Firebase Delete Data
+			var FirebaseDeleteRef = firebase.database().ref('ItemInventory/' + itemID);
+			FirebaseDeleteRef.remove()
+				.then(function () {
+					console.log("Item Deleted : " + itemID);
+				})
+				.catch(function (error) {
+					console.log("Delete Failed : " + error.message)
+				});
+		}).catch(function (error) {
+			console.log("Image Deletion from Firebase Storage Failed : " + error.message)
+		});
+	}
+
+
+	//code to give the modal for Item Deletion
+	$('#deleteProductModal').on('show.bs.modal', function (event) {
+		var button = $(event.relatedTarget) // Button that triggered the modal
+		var SelectedItemID = button.data('itemid') // Extract info from data-* attributes
+
+		var modal = $(this)
+		modal.find('.modal-body #deleteModalMessage').text('Are you sure you want to delete Product. Item ID: ' + SelectedItemID + " ?")
+
+		$('.deleteModalSubmitBtn').click(function () {
+			deleteItem(SelectedItemID);
+		});
+	});
+
+	//Function to Enable or Disable a Product
+	function productEnableOrDisable(itemID, elem) {
+		var FirebaseProductEnableRef = firebase.database().ref('ItemInventory/' + itemID);
+		if (elem.checked == true) {
+			FirebaseProductEnableRef.update({ enabled: "YES" })
+			console.log("Enabled Product with ID : " + itemID)
+		} else {
+			FirebaseProductEnableRef.update({ enabled: "NO" })
+			console.log("Disabled Product with ID : " + itemID)
+		}
+	}
+
+	//Function to Edit item
+	function editItem(itemId) {
+		alert("Edit Item : " + itemId);
+	}
+
+	//Function that shows MODAL for edit item confirmation
+	$('#editProductModal').on('show.bs.modal', function (event) {
+		var button = $(event.relatedTarget) // Button that triggered the modal
+		var SelectedItemID = button.data('itemid') // Extract info from data-* attributes
+		var modal = $(this)
+
+		let currbarcode = "";
+		let curritem_currency = "";
+		let curritem_description = "";
+		let curritem_details = "";
+		let curritem_name = "";
+		let curritem_price = "";
+		let curritem_quantity = "";
+
+		var FirebaseProductEditRef = firebase.database().ref('ItemInventory/' + SelectedItemID);
+		FirebaseProductEditRef.once('value').then(function (snapshot) {
+
+			console.log(snapshot.val())
+			dataSnapshot = snapshot.val();
+
+			let currbarcode = dataSnapshot.barcode;
+			let curritem_currency = dataSnapshot.item_currency;
+			let curritem_description = dataSnapshot.item_description;
+			let curritem_details = dataSnapshot.item_details;
+			let curritem_name = dataSnapshot.item_name;
+			let curritem_price = dataSnapshot.item_price;
+			let curritem_quantity = dataSnapshot.item_quantity;
+
+		});
+
+		let newbarcode = "";
+		let newitem_currency = "";
+		let newitem_description = "";
+		let newitem_details = "";
+		let newitem_name = "";
+		let newitem_price = "";
+		let newitem_quantity = "";
+
+
+		$('#editProductSubmitButton').click(function () {
+			
+			//Update Name
+			if (document.getElementById("productNameField").value.length > 0) {
+				newitem_name = document.getElementById("productNameField").value;
+				FirebaseProductEditRef.update({ item_name: newitem_name })
+			}
+
+			//Update Barcode
+			if (document.getElementById("barcodeField").value.length > 0) {
+				newbarcode = document.getElementById("barcodeField").value;
+				FirebaseProductEditRef.update({ barcode: newbarcode })
+			}
+
+			//Update Currency
+			if (document.getElementById("currencyField").value != 'None') {
+				newitem_currency = document.getElementById("currencyField").value;
+				FirebaseProductEditRef.update({ item_currency: newitem_currency })
+			}
+
+			//Update Item Description
+			if (document.getElementById("descriptionField").value.length > 0) {
+				newitem_description = document.getElementById("descriptionField").value;
+				FirebaseProductEditRef.update({ item_description: newitem_description })
+			}
+
+			//Update Details
+			if (document.getElementById("detailsField").value.length > 0) {
+				newitem_details = document.getElementById("detailsField").value;
+				FirebaseProductEditRef.update({ item_details: newitem_details })
+			}
+
+			//Update Price
+			if (document.getElementById("priceField").value.length > 0) {
+				newitem_price = document.getElementById("priceField").value;
+				FirebaseProductEditRef.update({ item_price: newitem_price })
+			}
+
+			//Update Quantity
+			if (document.getElementById("quantityField").value.length > 0) {
+				newitem_quantity = document.getElementById("quantityField").value;
+				FirebaseProductEditRef.update({ item_quantity: newitem_quantity })
+			}
+
+			location.reload();
+		});
+	});
+
+
+
+
+</script>
+
+{% endblock javascript %}
+
+{% block custom_css %}
+<!-- Data Table CSS  -->
+<link rel="stylesheet" href='https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css'>
+
+
+<!-- Alertify CSS -->
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/alertify.js/0.5.0/alertify.default.min.css" />
+
+<!-- Material Icons  -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+<!-- Image Uploader CSS -->
+<link rel="stylesheet" href='{% static "css/imageUploader.css" %}'>
+
+<!-- Bootstrap Toggle  -->
+<style>
+	.switch {
+		margin: 15%;
+		position: relative;
+		display: inline-block;
+		width: 40px;
+		height: 26px;
+	}
+
+	.switch input {
+		opacity: 0;
+		width: 0;
+		height: 0;
+	}
+
+	.slider {
+		position: absolute;
+		cursor: pointer;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: #ccc;
+		-webkit-transition: .4s;
+		transition: .4s;
+	}
+
+	.slider:before {
+		position: absolute;
+		content: "";
+		height: 20px;
+		width: 20px;
+		left: 2px;
+		bottom: 3px;
+		background-color: white;
+		-webkit-transition: .4s;
+		transition: .4s;
+	}
+
+	input:checked+.slider {
+		background-color: #004990;
+	}
+
+	input:focus+.slider {
+		box-shadow: 0 0 1px #004990;
+	}
+
+	input:checked+.slider:before {
+		-webkit-transform: translateX(17px);
+		-ms-transform: translateX(17px);
+		transform: translateX(17px);
+	}
+
+	/* Rounded sliders */
+	.slider.round {
+		border-radius: 34px;
+	}
+
+	.slider.round:before {
+		border-radius: 50%;
+	}
+
+	/* Modal Styles  */
+	.modal .modal-dialog {
+		max-width: 400px;
+	}
+
+	.modal .modal-header,
+	.modal .modal-body,
+	.modal .modal-footer {
+		padding: 20px 30px;
+	}
+
+	.modal .modal-content {
+		border-radius: 3px;
+	}
+
+	.modal .modal-footer {
+		background: #ecf0f1;
+		border-radius: 0 0 3px 3px;
+	}
+
+	.modal .modal-title {
+		display: inline-block;
+	}
+
+	.modal .form-control {
+		border-radius: 2px;
+		box-shadow: none;
+		border-color: #dddddd;
+	}
+
+	.modal textarea.form-control {
+		resize: vertical;
+	}
+
+	.modal .btn {
+		border-radius: 2px;
+		min-width: 100px;
+	}
+
+	.modal form label {
+		font-weight: normal;
+	}
+</style>
+
+{% endblock custom_css %}

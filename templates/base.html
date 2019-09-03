@@ -1,0 +1,56 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+
+{% block header %}
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+
+	<title>{% block title %}{% endblock %}</title>
+
+	{% include "header.html" %}
+
+	{% block custom_css %}
+
+	{% endblock custom_css %}
+
+</head>
+{% endblock header %}
+
+{% block body %}
+
+<body>
+	<div id="wrapper">
+
+		{% block top_nav %}
+		{% include "top_nav.html" %}
+		{% endblock top_nav %}
+
+		{% block left_nav %}
+		{% include "left_nav.html" %}
+		{% endblock left_nav %}
+
+		{% block body_content %}
+
+		{% endblock body_content %}
+
+		{% block extra %}
+
+		{% endblock extra %}
+
+		{% block javascript %}
+
+		{% endblock javascript %}
+
+		{% block custom_js %}
+		{% endblock custom_js %}
+	</div>
+</body>
+{% endblock body %}
+
+</html>

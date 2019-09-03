@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block title %}
+{{ ' myCart' }}
+{% endblock title %}
+
+{% block body_content %}
+
+<div id="wrapper">
+	<!-- MAIN -->
+	<div class="main">
+		<!-- BEGIN  - FORM -->
+		<div class="col-lg-12">
+			<div class="card">
+				<div class="card-body">
+
+					<form class="form" role="form" action="" method="post">
+
+						<div class="row">
+							<div class="col-sm-6">
+								<header>Add Users</header>
+								</br>
+								<div class="form-group floating-label">
+									<label for="regular2">First Name</label>
+									<input type="text" class="form-control" required id="firstNameField">
+								</div>
+								<div class="form-group floating-label">
+									<label for="regular2">Last Name</label>
+									<input type="text" class="form-control" required id="lastNameField">
+
+								</div>
+								<div class="form-group floating-label">
+									<label for="textarea2">E-Mail</label>
+									<input type="text" class="form-control" required id="emailField">
+								</div>
+							</div>
+							<div class="col-sm-6">
+								<header><br><br></header>
+								<div class="form-group">
+									<label for="regular2">User ID:</label>
+									<input type="text" class="form-control" required id="userIDField">
+
+								</div>
+								<div class="form-group floating-label">
+									<label for="textarea2">Address</label>
+									<input type="text" class="form-control" required id="addressField">
+								</div>
+								<div class="form-group floating-label">
+									<label for="textarea2">Phone No:</label>
+									<input type="text" class="form-control" required id="phoneNoField">
+								</div>
+
+							</div>
+							<div class="col-md-12">
+								<div class="card-actionbar-row">
+									<input type="button" class="btn btn-primary ink-reaction" value="SUBMIT"
+										id="newUserButton" onclick="makeNewUser()">
+								</div>
+							</div>
+						</div>
+					</form>
+				</div>
+				<!--end .card-body -->
+			</div>
+			<!--end .card -->
+		</div>
+		<!--end .col -->
+		<!-- END FORM - TIME ON SITE -->
+	</div>
+	<!--end .row -->
+</div>
+<!--end .section-body -->
+</div>
+<!--end .section-body -->
+
+{% endblock body_content %}
+
+{% block javascript %}
+
+<script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
+
+
+<!-- FireBase  -->
+<script src="https://www.gstatic.com/firebasejs/6.4.0/firebase.js"></script>
+<script src="{% static 'js/FirebaseINIT.js' %}"></script>
+
+
+<!-- Firebase Add New User Function  -->
+<script>
+	function makeNewUser() {
+		var pathDB = "users/" + document.getElementById("userIDField").value
+		firebase.database().ref(pathDB).set({
+			"firstName": document.getElementById("firstNameField").value,
+			"lastName": document.getElementById("lastNameField").value,
+			"userID": document.getElementById("userIDField").value,
+			"address": document.getElementById("addressField").value,
+			"email": document.getElementById("emailField").value,
+			"phoneNo": document.getElementById("phoneNoField").value,
+			"block": "NO"
+		}, function (error) {
+			if (error) {
+				alert("New User cannot be added to FireBase." + error);
+			} else {
+				alert("New User added - ID : " + document.getElementById("userIDField").value);
+				location.reload();
+			}
+		});
+	}
+</script>
+
+
+{% endblock javascript %}
+
+{% block custom_css %}
+
+{% endblock custom_css %}

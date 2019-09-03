@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block title %}
+{{ ' myCart' }}
+{% endblock title %}
+
+{% block body_content %}
+
+<div id="wrapper">
+	<!-- MAIN -->
+	<div class="main">
+		<!-- BEGIN  - FORM -->
+		<div class="col-lg-12">
+			<div class="card">
+				<div class="card-body">
+
+					<div class="row">
+
+						<!-- First Column -->
+						<div class="col-sm-12">
+							<header>Add New Banner</header>
+							</br>
+						</div>
+
+
+						<!-- Second Column -->
+						<div class="row">
+							<!-- Image Upload Column  -->
+							<div class="col-sm-6">
+								<div class="form-group floating-label">
+
+									<label for="textarea2" style="margin-left: 15px;">Image Upload</label>
+
+									<div class="row">
+										<div class="container col-sm-5">
+											<div class="avatar-upload">
+												<div class="avatar-edit">
+													<input type='file' id="imageUpload" accept=".png, .jpg, .jpeg" />
+													<label for="imageUpload"></label>
+												</div>
+												<div class="avatar-preview">
+													<div id="imagePreview"
+														style="background-image: url(http://i.pravatar.cc/500?img=7);">
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<!-- Submit button  -->
+							<div class="col-sm-6">
+								<div class="form-group">
+									<label for="regular2">Banner Name</label>
+									<input type="text" class="form-control" required id="bannerNameField">
+								</div>
+								<div class="alert alert-info" style="margin-top: 10%">
+									<label style="font-weight: bold;">Info!</label>
+									<ul>
+										<li> Resolution of image should be 300px by 300px</li>
+										<li> Please try to upload file with minimum size</li>
+									</ul>
+								</div>
+
+								<button class="btn btn-primary ink-reaction" id="imageUploadButton"
+									style="margin-top: 10%; margin-right: 30%" onclick="bannerImageUploadFirebase()"><i
+										id='uploadingLoadSpinner' style="display: none;"
+										class="fa fa-spinner fa-spin"></i> UPLOAD IMAGE
+								</button>
+								<input type="button" class="btn btn-primary ink-reaction" id="submitButton"
+									style="float: right; margin-top: 10%; margin-right: 20%" value="SUBMIT"
+									onclick="makeNewBanner()" disabled>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!--end .card-body -->
+			</div>
+			<!--end .card -->
+		</div>
+		<!--end .col -->
+		<!-- END FORM - TIME ON SITE -->
+
+	</div>
+	<!--end .row -->
+</div>
+<!--end .section-body -->
+</div>
+<!--end .section-body -->
+
+{% endblock body_content %}
+
+{% block javascript %}
+
+<script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
+
+
+<!-- FireBase  -->
+<script src="https://www.gstatic.com/firebasejs/6.4.0/firebase.js"></script>
+<script src="{% static 'js/FirebaseINIT.js' %}"></script>
+
+
+<!-- Croppie JS  -->
+<script src="{% static 'js/croppie.js' %}"></script>
+
+<!-- Firebase Add New Product Function  -->
+<script>
+	var selectedFile;
+	function readURL(input) {
+		if (input.files && input.files[0]) {
+			var reader = new FileReader();
+			reader.onload = function (e) {
+				$('#imagePreview').css('background-image', 'url(' + e.target.result + ')');
+				$('#imagePreview').hide();
+				$('#imagePreview').fadeIn(650);
+			}
+			reader.readAsDataURL(input.files[0]);
+		}
+	}
+	$("#imageUpload").change(function () {
+		selectedFile = this.files[0];
+		readURL(this);
+	});
+
+
+	var image_url;
+
+	var bannerImageUploadFirebase = () => {
+
+		//Form validations 
+
+		let banner_name = document.getElementById("bannerNameField").value;
+
+		if (banner_name == '') {
+			alert("Please Enter All Form Details!");
+			return;
+		}
+
+
+		//show uploading spinner
+		$("#uploadingLoadSpinner").show();
+
+		var fileName = document.getElementById("bannerNameField").value;
+
+		var storageRef = defaultStorage.ref();
+		var storageFolder = storageRef.child("/Banners/" + fileName);
+
+		var metadata = {
+			contentType: 'image/jpeg',
+		};
+
+		var uploadTask = storageFolder.put(selectedFile, metadata);
+
+
+		uploadTask.on('state_changed', function (snapshot) {
+			var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+			console.log('Upload is ' + progress + '% done');
+
+			switch (snapshot.state) {
+				case firebase.storage.TaskState.PAUSED:
+					console.log('Upload is paused');
+					break;
+				case firebase.storage.TaskState.RUNNING:
+					console.log('Upload is running');
+					break;
+			}
+		}, function (error) {
+			// Handle unsuccessful uploads
+			console.log("ERROR: " + error);
+		}, function () {
+			// Handle successful uploads on complete
+			uploadTask.snapshot.ref.getDownloadURL().then(function (downloadURL) {
+				console.log('File available at ', downloadURL);
+				image_url = downloadURL;
+
+				//hide uploading spinner
+				$("#uploadingLoadSpinner").hide();
+				document.getElementById("imageUploadButton").disabled = true;
+				document.getElementById("submitButton").disabled = false;
+			});
+		});
+	}
+
+
+
+	function makeNewBanner() {
+		if (image_url != '') {
+			var pathDB = "BannerLink/" + document.getElementById("bannerNameField").value
+			firebase.database().ref(pathDB).set({
+				"banner_name": document.getElementById("bannerNameField").value,
+				"enabled": "YES",
+				"link_url": image_url
+			}, function (error) {
+				if (error) {
+					alert("New Banner cannot be added to FireBase." + error);
+				} else {
+					alert("New Banner added - ID : " + document.getElementById("bannerNameField").value);
+					location.reload();
+				}
+			});
+			console.log("Set Task Snapshot")
+			console.log(setTask)
+
+		}
+		else {
+			alert('Firebase error!');
+		}
+	}
+</script>
+
+
+{% endblock javascript %}
+
+{% block custom_css %}
+<!-- Image Uploader CSS -->
+<link rel="stylesheet" href='{% static "css/imageUploader1.css" %}'>
+
+<!-- Croppie CSS  -->
+<link rel="stylesheet" href='{% static "css/croppie.css" %}'>
+{% endblock custom_css %}

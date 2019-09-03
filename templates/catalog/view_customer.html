@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block title %}
+{{ ' myCart' }}
+{% endblock title %}
+
+{% block body_content %}
+
+<div id="wrapper">
+	<!-- MAIN -->
+	<div class="main">
+		<div class="col-lg-12">
+			<div class="card">
+				<div class="card-body">
+					<div class="table-responsive">
+						<table id="usersTable" class="table table-striped table-bordered">
+							<thead style="background-color: #004990;color: white;">
+								<tr>
+									<th width="5%">Block</th>
+									<th width="10%">User ID</th>
+									<th width="10%">First Name</th>
+									<th width="10%">Last Name</th>
+									<th width="18%">Email</th>
+									<th width="25%">Address</th>
+									<th width="10%">Phone No:</th>
+									<th width="12%">Actions</th>
+								</tr>
+							</thead>
+							<tbody>
+							</tbody>
+						</table>
+					</div>
+					<!--end .table-responsive -->
+				</div>
+			</div>
+
+
+			<!-- Delete Modal HTML -->
+			<div id="deleteUserModal" class="modal fade">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<form>
+							<div class="modal-header">
+								<h4 class="modal-title">Delete User</h4>
+								<button type="button" class="close" data-dismiss="modal"
+									aria-hidden="true">&times;</button>
+							</div> <!-- end of modal-body  -->
+
+							<div class="modal-body">
+								<p id='deleteModalMessage'></p>
+								<p class="text-warning"><small>This action cannot be undone.</small></p>
+							</div> <!-- end of modal-body  -->
+
+							<div class="modal-footer">
+								<input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
+								<input type="submit" class="deleteModalSubmitBtn btn btn-danger" value="Delete">
+							</div> <!-- end of modal-footer  -->
+
+						</form> <!-- end of form  -->
+					</div> <!-- end of modal-content  -->
+				</div> <!-- end of modal-dialog  -->
+			</div> <!-- end of modal (delete) -->
+
+			<!-- Edit Modal HTML -->
+			<div id="editProductModal" class="modal fade bd-example-modal-xl">
+				<div class="modal-dialog modal-xl" style="min-width: 80%">
+					<div class="modal-content">
+						<form>
+							<div class="col-lg-12" style="margin-top: 1%">
+								<div class="alert alert-info" style="margin-top: 1%">
+									<label style="font-weight: bold;">Info!</label>
+									Please change the values that needs changing, keep the other fields blank
+								</div>
+								<div class="card">
+									<div class="card-body">
+										<div class="row">
+											<div class="col-sm-6">
+												<header>Add Users</header>
+												</br>
+												<div class="form-group floating-label">
+													<label for="regular2">First Name</label>
+													<input type="text" class="form-control" required
+														id="firstNameField">
+												</div>
+												<div class="form-group floating-label">
+													<label for="regular2">Last Name</label>
+													<input type="text" class="form-control" required id="lastNameField">
+
+												</div>
+												<div class="form-group floating-label">
+													<label for="textarea2">E-Mail</label>
+													<input type="text" class="form-control" required id="emailField">
+												</div>
+											</div>
+											<div class="col-sm-6">
+												<header><br><br></header>
+												<div class="form-group floating-label">
+													<label for="textarea2">Address</label>
+													<input type="text" class="form-control" required id="addressField">
+												</div>
+												<div class="form-group floating-label">
+													<label for="textarea2">Phone No:</label>
+													<input type="text" class="form-control" required id="phoneNoField">
+												</div>
+
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="modal-footer">
+								<input type="submit" class="btn btn-primary ink-reaction" id="editUserSubmitButton"
+									value="SUBMIT">
+								<input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+
+		</div>
+		<!--end .col -->
+	</div>
+	<!--end .row -->
+</div>
+<!--end .section-body -->
+</div>
+<!--end .section-body -->
+
+{% endblock body_content %}
+
+{% block javascript %}
+
+<script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/alertify.js/0.5.0/alertify.min.js"></script>
+
+<!-- FireBase  -->
+<script src="https://www.gstatic.com/firebasejs/6.4.0/firebase.js"></script>
+<script src="{% static 'js/FirebaseINIT.js' %}"></script>
+
+<!-- Data Table JS  -->
+<script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+
+<!-- Alertify JavaScript -->
+
+<script>
+	$(function () {
+		alertify.alert('Alert Title', 'Alert Message!', function () { alertify.success('Ok'); });
+	});
+
+	get_user_list();
+
+	function get_user_list() {
+
+		var database = firebase.database();
+		database.ref('users/').once('value', function (snapshot) {
+			if (snapshot.exists()) {
+				var content = '';
+				snapshot.forEach(function (data) {
+					var val = data.val();
+
+					content += '<tr>';
+					if (val.block == "YES") {
+						content += '<td width="5%"><label class="switch"><input type="checkbox" checked onclick="userBlockedOrNot(\'' + val.userID + '\', this)" ><span class="slider round"></span></label></td>';
+					}
+					else {
+						content += '<td width="5%"><label class="switch"><input type="checkbox" onclick="userBlockedOrNot(\'' + val.userID + '\', this)" ><span class="slider round"></span></label></td>';
+					}
+					content += '<td width="10%">' + val.userID + '</td>';
+					content += '<td width="10%">' + val.firstName + '</td>';
+					content += '<td width="10%">' + val.lastName + '</td>';
+					content += '<td width="18%">' + val.email + '</td>';
+					content += '<td width="25%">' + val.address + '</td>';
+					content += '<td width="10%">' + val.phoneNo + '</td>';
+					content += '<td width="12%"><a href="#deleteUserModal" class="delete" data-toggle="modal" data-itemid=\'' + val.userID + '\'><i class="material-icons" data-toggle="tooltip" style="color:red;" title="Delete">&#xE872;</i></a>&emsp;<a href="#editProductModal" class="edit" data-toggle="modal"  data-itemid=\'' + val.userID + '\' data-target=".bd-example-modal-xl"><i class="material-icons" data-toggle="tooltip" style="color:#004990;" title="Edit">&#xE254;</i></a>&emsp;<a href="http://maps.google.com/?q=\'' + val.address + '\'" target="_blank"><i class="material-icons" data-toggle="tooltip" style="color:#004990;" title="Directions">directions</i></a></td>';
+					content += '</tr>';
+				});
+				$('#usersTable').append(content);
+				$('#usersTable').DataTable();
+			}
+		});
+	}
+
+	//  Code to delete user from firebase also deletes the item image in firebase storage
+	function deleteUser(userID) {
+
+		alert(userID)
+
+		//Firebase Delete Data
+		var FirebaseDeleteRef = firebase.database().ref('users/' + userID);
+		FirebaseDeleteRef.remove()
+			.then(function () {
+				console.log("User Deleted : " + userID);
+			})
+			.catch(function (error) {
+				console.log("Delete Failed : " + error.message)
+			});
+	}
+
+
+	//code to give the modal for Item Deletion
+	$('#deleteUserModal').on('show.bs.modal', function (event) {
+		var button = $(event.relatedTarget) // Button that triggered the modal
+		var SelectedUserID = button.data('itemid') // Extract info from data-* attributes
+
+		var modal = $(this)
+		modal.find('.modal-body #deleteModalMessage').text('Are you sure you want to delete User with ID: ' + SelectedUserID + " ?")
+
+		$('.deleteModalSubmitBtn').click(function () {
+			deleteUser(SelectedUserID);
+		});
+	});
+
+	//Function to Block or UnBlock a User
+	function userBlockedOrNot(userID, elem) {
+		var FirebaseUserBlockRef = firebase.database().ref('users/' + userID);
+		if (elem.checked == true) {
+			FirebaseUserBlockRef.update({ enabled: "YES" })
+			console.log("Blocked User with ID : " + userID)
+		} else {
+			FirebaseUserBlockRef.update({ enabled: "NO" })
+			console.log("UnBlocked User with ID : " + userID)
+		}
+	}
+
+	//Function to Edit item
+	function editItem(itemId) {
+		alert("Edit Item : " + itemId);
+	}
+
+	//Function that shows MODAL for edit item confirmation
+	$('#editProductModal').on('show.bs.modal', function (event) {
+		var button = $(event.relatedTarget) // Button that triggered the modal
+		var SelectedUserID = button.data('itemid') // Extract info from data-* attributes
+		var modal = $(this)
+
+		let currFirstName = "";
+		let currLastName = "";
+		let currAddress = "";
+		let currPhoneNo = "";
+		let currEmail = "";
+
+		var FirebaseProductEditRef = firebase.database().ref('users/' + SelectedUserID);
+		FirebaseProductEditRef.once('value').then(function (snapshot) {
+
+			console.log(snapshot.val())
+			dataSnapshot = snapshot.val();
+
+			let currFirstName = dataSnapshot.firstName;
+			let currLastName = dataSnapshot.lastName;
+			let currAddress = dataSnapshot.address;
+			let currPhoneNo = dataSnapshot.phoneNo;
+			let currEmail = dataSnapshot.email;
+
+		});
+
+		let newFirstName = "";
+		let newLastName = "";
+		let newAddress = "";
+		let newPhoneNo = "";
+		let newEmail = "";
+
+
+		$('#editUserSubmitButton').click(function () {
+
+			//Update First Name
+			if (document.getElementById("firstNameField").value.length > 0) {
+				newFirstName = document.getElementById("firstNameField").value;
+				FirebaseProductEditRef.update({ firstName: newFirstName })
+			}
+
+			//Update Last Name
+			if (document.getElementById("lastNameField").value.length > 0) {
+				newLastName = document.getElementById("lastNameField").value;
+				FirebaseProductEditRef.update({ lastName: newLastName })
+			}
+
+			//Update Email
+			if (document.getElementById("emailField").value.length > 0) {
+				newEmail = document.getElementById("emailField").value;
+				FirebaseProductEditRef.update({ email: newEmail })
+			}
+
+			//Update Address
+			if (document.getElementById("addressField").value.length > 0) {
+				newAddress = document.getElementById("addressField").value;
+				FirebaseProductEditRef.update({ address: newAddress })
+			}
+
+			//Update Phone No
+			if (document.getElementById("phoneNoField").value.length > 0) {
+				newPhoneNo = document.getElementById("phoneNoField").value;
+				FirebaseProductEditRef.update({ phoneNo: newPhoneNo })
+			}
+
+
+			location.reload();
+		});
+	});
+
+
+
+
+</script>
+
+{% endblock javascript %}
+
+{% block custom_css %}
+<!-- Data Table CSS  -->
+<link rel="stylesheet" href='https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css'>
+
+
+<!-- Alertify CSS -->
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/alertify.js/0.5.0/alertify.default.min.css" />
+
+<!-- Material Icons  -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+
+
+<!-- Bootstrap Toggle  -->
+<style>
+	.switch {
+		margin: 15%;
+		position: relative;
+		display: inline-block;
+		width: 40px;
+		height: 26px;
+	}
+
+	.switch input {
+		opacity: 0;
+		width: 0;
+		height: 0;
+	}
+
+	.slider {
+		position: absolute;
+		cursor: pointer;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: #ccc;
+		-webkit-transition: .4s;
+		transition: .4s;
+	}
+
+	.slider:before {
+		position: absolute;
+		content: "";
+		height: 20px;
+		width: 20px;
+		left: 2px;
+		bottom: 3px;
+		background-color: white;
+		-webkit-transition: .4s;
+		transition: .4s;
+	}
+
+	input:checked+.slider {
+		background-color: #004990;
+	}
+
+	input:focus+.slider {
+		box-shadow: 0 0 1px #004990;
+	}
+
+	input:checked+.slider:before {
+		-webkit-transform: translateX(17px);
+		-ms-transform: translateX(17px);
+		transform: translateX(17px);
+	}
+
+	/* Rounded sliders */
+	.slider.round {
+		border-radius: 34px;
+	}
+
+	.slider.round:before {
+		border-radius: 50%;
+	}
+
+	/* Modal Styles  */
+	.modal .modal-dialog {
+		max-width: 400px;
+	}
+
+	.modal .modal-header,
+	.modal .modal-body,
+	.modal .modal-footer {
+		padding: 20px 30px;
+	}
+
+	.modal .modal-content {
+		border-radius: 3px;
+	}
+
+	.modal .modal-footer {
+		background: #ecf0f1;
+		border-radius: 0 0 3px 3px;
+	}
+
+	.modal .modal-title {
+		display: inline-block;
+	}
+
+	.modal .form-control {
+		border-radius: 2px;
+		box-shadow: none;
+		border-color: #dddddd;
+	}
+
+	.modal textarea.form-control {
+		resize: vertical;
+	}
+
+	.modal .btn {
+		border-radius: 2px;
+		min-width: 100px;
+	}
+
+	.modal form label {
+		font-weight: normal;
+	}
+</style>
+
+{% endblock custom_css %}

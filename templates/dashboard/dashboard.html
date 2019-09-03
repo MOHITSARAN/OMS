@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block title %}
+  {{ ' myCart' }}
+{% endblock title %}
+
+{% block body_content %}
+
+<div id="wrapper">
+<!-- MAIN -->
+<div class="main">
+	<!-- MAIN CONTENT -->
+	<div class="main-content">
+		<div class="container-fluid">
+			<!-- OVERVIEW -->
+				<div class="panel panel-headline">
+					<div class="panel-heading">
+						<h3 class="panel-title">Dashboard</h3>
+					</div>
+					<div class="panel-body">
+						<div class="row">
+							<div class="col-md-3">
+								<div class="metric">
+									<span class="icon"><i class="fa fa-download"></i></span>
+									<p>
+										<span class="number">2</span>
+										<span class="title">TOTAL ORDERS</span>
+									</p>
+								</div>
+							</div>
+							<div class="col-md-3">
+								<div class="metric">
+									<span class="icon"><i class="fa fa-shopping-bag"></i></span>
+									<p>
+										<span class="number">3</span>
+										<span class="title">TOTAL SALES</span>
+									</p>
+								</div>
+							</div>
+							<div class="col-md-3">
+								<div class="metric">
+									<span class="icon"><i class="fa fa-eye"></i></span>
+									<p>
+										<span class="number">0</span>
+										<span class="title">TOTAL CUSTOMERS</span>
+									</p>
+								</div>
+							</div>
+							<div class="col-md-3">
+								<div class="metric">
+									<span class="icon"><i class="fa fa-bar-chart"></i></span>
+									<p>
+										<span class="number">0</span>
+										<span class="title">PEOPLE ONLINE</span>
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+				<div class="row">
+					<div class="col-lg-6 col-md-12 col-sm-12"><div class="panel panel-default">
+					  <div class="panel-heading">
+					    <h3 class="panel-title"><i class="fa fa-globe"></i> World Map</h3>
+					  </div>
+					   <div id="vmap" style="width: 600px; height: 400px;"></div>
+					</div></div>
+					<div class="col-lg-6 col-md-12 col-sm-12"><div class="panel panel-default">
+					  <div class="panel-heading">
+					    <h3 class="panel-title"><i class="fa fa-calendar"></i> Latest Orders</h3>
+					  </div>
+					  <ul class="list-group">
+					        <li class="list-group-item text-center">No results!</li>
+					      </ul>
+					</div></div>
+				</div>
+
+			<!-- END OVERVIEW -->
+			</div>
+		</div>
+	</div>
+</div>
+
+
+{% endblock body_content %}
+
+{% block javascript %}
+
+  <script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+  <script src="{% static 'js/bootstrap.min.js' %}"></script>
+  <script src="{% static 'js/jquery.vmap.js' %}"></script>
+  <script src="{% static 'js/jquery.vmap.world.js' %}"></script>
+  <script src="{% static 'js/jquery.vmap.sampledata.js' %}"></script>
+
+
+  <script type="text/javascript">
+
+  	 jQuery('#vmap').vectorMap({
+            map: 'world_en',
+            backgroundColor: '#fff',
+            color: '#ffffff',
+            hoverOpacity: 0.7,
+            selectedColor: '#666666',
+            enableZoom: false,
+            showTooltip: true,
+            values: sample_data,
+            scaleColors: ['#C8EEFF', '#006491'],
+            normalizeFunction: 'polynomial'
+        });
+  </script>
+{% endblock javascript %}
+
+{% block custom_css %}
+
+
+  <style type="text/css">
+
+  </style>
+{% endblock custom_css %}
